@@ -7,6 +7,11 @@
 
 namespace pxm {
 
+    /**
+    * Wait free, lock free, single producer, single consumer, bounded FIFO queue
+    * Capacity must an unsigned (power of 2) - 1 to enable performance advantage of bitwise masking
+    * in order to avoid expensive division.
+    */
     template<typename T, size_t CAPACITY>
     class spsc_concurrent_bounded_queue {
 
@@ -24,6 +29,8 @@ namespace pxm {
         bool try_push(const T& item);
 
         bool try_pop(T& item);
+
+        size_t abandon_all();
 
         size_t size_guess();
 
@@ -55,11 +62,20 @@ namespace pxm {
 
     template<typename T, size_t CAPACITY>
     inline bool spsc_concurrent_bounded_queue<T, CAPACITY>::try_push(const T & item) {
-        const auto current_tail = tail.load();
-        const auto next_tail = (current_tail + 1) & mask;
-        if (next_tail != head.load()) {
+        // relaxed op, there are no synchronization or ordering constraints imposed on other reads or
+        // writes, only this operation's atomicity is guaranteed 
+        const auto current_tail = tail.load(std::memory_order_relaxed);
+        // significant performance advantage over modulo operator (%)
+        const auto next_tail = (current_tail + 1) & mask; 
+        // load op, memory order performs the acquire operation on the affected memory location: 
+        // no reads or writes in the current thread can be reordered before this load
+        // all writes in other threads that release the same atomic variable are visible in the current thread
+        if (next_tail != head.load(std::memory_order_acquire)) {
             q[current_tail] = item;
-            tail.store(next_tail);
+            // store op, memory order performs the release operation: 
+            // no reads or writes in the current thread can be reordered after this store
+            // all writes in the current thread are visible in other threads that acquire the same atomic variable 
+            tail.store(next_tail, std::memory_order_release);
             return true;
         }
         else {
@@ -69,15 +85,22 @@ namespace pxm {
 
     template<typename T, size_t CAPACITY>
     inline bool spsc_concurrent_bounded_queue<T, CAPACITY>::try_pop(T& item) {
-        const auto current_head = head.load();
-        if (current_head == tail.load()) {
+        const auto current_head = head.load(std::memory_order_relaxed);
+        if (current_head == tail.load(std::memory_order_acquire)) {
             return false;
         }
         else {
             item = q[current_head];
-            head.store((current_head + 1) & mask);
+            head.store((current_head + 1) & mask, std::memory_order_release);
             return true;
         }
+    }
+
+    template<typename T, size_t CAPACITY>
+    inline size_t spsc_concurrent_bounded_queue<T, CAPACITY>::abandon_all() {
+        auto abandoned = size_guess();
+        head = tail = 0;
+        return abandoned;
     }
 
     template<typename T, size_t CAPACITY>

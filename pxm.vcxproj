@@ -102,8 +102,11 @@
     <ClCompile Include="test_000_spsc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="active_object.h" />
     <ClInclude Include="catch2.h" />
+    <ClInclude Include="command.h" />
     <ClInclude Include="error_messages.h" />
+    <ClInclude Include="scheduler.h" />
     <ClInclude Include="spsc_concurrent_bounded_queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

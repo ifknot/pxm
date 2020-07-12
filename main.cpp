@@ -6,20 +6,22 @@
 #include <vector>
 #include <algorithm>
 
+#include "active_object.h"
+
 int main(int argc, char* argv[]) {
-    
-    std::vector<std::thread> workers;
-    for (int i = 0; i < 5; i++) {
-        workers.push_back(std::thread([i]() {
-            std::cout << "thread function " << i << "\n";
-        }));
+
+    std::cout << "test program execution model\n";
+
+    pxm::active_object<15> aob1;
+    pxm::active_object<15> aob2;
+    aob1.send([]() { std::cout << "a" << std::endl; });
+    for (int i{ 0 }; i < 10; ++i) {
+        aob1.send([&i]() { std::cout << "b" << i << std::endl; });
+        aob2.send([&i]() { std::cout << "B" << i << std::endl; });
     }
-
-    std::cout << "main thread\n";
-
-    std::for_each(workers.begin(), workers.end(), [](std::thread& t) {
-        t.join();
-    });
+    aob1.send([]() { std::cout << "c" << std::endl; });
+    aob2.send([]() { std::cout << "A" << std::endl; });
+    aob2.send([]() { std::cout << "C" << std::endl; });
 
     return Catch::Session().run(argc, argv);
 
