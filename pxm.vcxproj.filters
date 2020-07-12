@@ -21,6 +21,9 @@
     <ClCompile Include="test_000_spsc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_001_aob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="catch2.h">

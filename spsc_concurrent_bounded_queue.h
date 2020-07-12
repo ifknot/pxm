@@ -9,8 +9,7 @@ namespace pxm {
 
     /**
     * Wait free, lock free, single producer, single consumer, bounded FIFO queue
-    * Capacity must an unsigned (power of 2) - 1 to enable performance advantage of bitwise masking
-    * in order to avoid expensive division.
+    * Capacity must an unsigned (power of 2) - 1 to enable performance advantage of bitwise masking.
     */
     template<typename T, size_t CAPACITY>
     class spsc_concurrent_bounded_queue {

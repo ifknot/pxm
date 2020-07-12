@@ -100,6 +100,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_000_spsc.cpp" />
+    <ClCompile Include="test_001_aob.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="active_object.h" />

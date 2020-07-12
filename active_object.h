@@ -22,7 +22,7 @@ namespace pxm {
 
     public:
 
-        active_object() : s(q) {}
+        active_object();
 
         active_object(const active_object&) = delete;
 
@@ -36,15 +36,18 @@ namespace pxm {
 
     private:
 
-        scheduler<queue_t> s;
+        scheduler<queue_t> worker; 
         queue_t q;
 
     };
 
     template<size_t Capacity>
+    inline active_object<Capacity>::active_object() : worker(q) {}
+
+    template<size_t Capacity>
     inline void active_object<Capacity>::send(pxm::command m) {
         if (!q.try_push(m)) {
-            throw std::runtime_error(ERR_QUEUE_FULL);
+            throw std::runtime_error(ERR_QUEUE_FULL + __func__);
         }
     }
 
